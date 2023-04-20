@@ -1,56 +1,57 @@
 package edu.iu.c322.customerservice.controller;
 
 import edu.iu.c322.customerservice.repository.CustomerRepository;
-
 import jakarta.validation.Valid;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import edu.iu.c322.customerservice.model.Customer;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import java.net.URI;
-import java.util.List;
+import reactor.core.publisher.Mono;
 
 
 @RestController
 @RequestMapping("/customers")
 public class CustomerController {
 
-    private WebClient repository;
+    private CustomerRepository customerRepository;
 
-    public CustomerController(WebClient.Builder webClientBuilder) {
+    public CustomerController(CustomerRepository customerRepository) {
+        this.customerRepository = customerRepository;
 
-        repository = webClientBuilder.baseUrl("http://localhost:8080").build();
     }
 
     // Get https:localhost:8080/customers
 
 
     @ResponseStatus(HttpStatus.CREATED)
-    @PostMapping
+    @PostMapping()
     public int create(@Valid @RequestBody Customer customer){
 
-        Customer addedCustomer =  repository.get().uri("/create/{orderId}", customer)
-                .retrieve()
-                .bodyToMono(Customer.class).block();
+        Customer newc = customerRepository.save(customer);
 
-        return addedCustomer.getId();
+
+    return newc.getId();
+
     }
+
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PutMapping("/update/{id}")
     public void update(@Valid @RequestBody Customer customer, @PathVariable int id){
 
-        Customer addedCustomer =  repository.put().uri("/create/{orderId}", id)
-                .retrieve()
-                .bodyToMono(Customer.class).block();
+        customer.setId(id);
+        customerRepository.save(customer);
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public void delete(@PathVariable int id){
 
-        repository.delete().uri("/customer/delete{id}",id);
+        Customer customer = new Customer();
+        customer.setId(id);
+        customerRepository.delete(customer);
     }
 
 

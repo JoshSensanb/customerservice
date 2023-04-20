@@ -1,1 +1,1 @@
-create schema if not exists orders
+create schema if not exists customer
